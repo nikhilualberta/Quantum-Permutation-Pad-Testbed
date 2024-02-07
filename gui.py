@@ -55,6 +55,7 @@ if __name__ == "__main__":
     encrypt_mode = Radiobutton(gui, text="Encrypt Mode", variable=mode_var, value=1, command=toggle_mode)
     encrypt_mode.grid(row=1, column=0, sticky=W, padx=10)
 
+
     attack_mode = Radiobutton(gui, text="Attacker Mode", variable=mode_var, value=2, command=toggle_mode)
     attack_mode.grid(row=2, column=0, sticky=W, padx=10)
 
@@ -65,6 +66,9 @@ if __name__ == "__main__":
     encrypt_var.set(encrypt_options[0])
     encrypt_option_menu = OptionMenu(gui, encrypt_var, *encrypt_options)
 
+    encrypt_option_label.grid(row=3, column=0, sticky=W, padx=10, pady=10)
+    encrypt_option_menu.grid(row=4, column=0, sticky=W, padx=10)
+    
     attack_option_label = Label(gui, text="Select Attack Method:", fg="black")
   
     attack_options = ["man in the middle", "Method 2", "Method 3"]
