@@ -1,5 +1,4 @@
 def download_report(test_vector_length_entry, test_vector_number_entry, test_vector):
-    print("gere")
     file_path = "report.txt"
     with open(file_path, "w") as file:
         test_vector_length = test_vector_length_entry.get()

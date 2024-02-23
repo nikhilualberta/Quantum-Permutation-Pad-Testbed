@@ -24,8 +24,21 @@ def toggle_mode():
         encrypt_option_menu.grid_forget()
 
 def encrypt_text():
-    
-    print("Encrypted Text:", test_vector)
+    # Display input data
+    input_data_label.config(text="Input Data: " + str(test_vector))
+
+    # Placeholders #TODO replace with actual data
+    encrypted_data = "Encrypted Data Placeholder"
+    encrypted_data_label.config(text="Encrypted Data: " + encrypted_data)
+
+    decrypted_data = "Decrypted Data Placeholder"
+    decrypted_data_label.config(text="Decrypted Data: " + decrypted_data)
+
+    accuracy = "90%"
+    accuracy_label.config(text="Accuracy: " + accuracy)
+
+    time_taken = "0.5s"
+    time_taken_label.config(text="Time Taken: " + time_taken)
 
 def attack():
     method = attack_var.get()
@@ -48,7 +61,7 @@ if __name__ == "__main__":
     gui = Tk() 
     gui.configure(background="grey") 
     gui.title("Quantum Permutation Pad Testbed") 
-    gui.geometry("640x480") 
+    gui.geometry("1280x720") 
 
     row, column = gui.grid_size()
 
@@ -76,18 +89,13 @@ if __name__ == "__main__":
     encrypt_option_label.grid(row=3, column=0, sticky=W, padx=10, pady=10)
     encrypt_option_menu.grid(row=4, column=0, sticky=W, padx=10)
     
+    # Attack Options
     attack_option_label = Label(gui, text="Select Attack Method:", fg="black")
   
     attack_options = ["man in the middle", "Method 2", "Method 3"]
     attack_var = StringVar()
     attack_var.set(attack_options[0]) 
     attack_option_menu = OptionMenu(gui, attack_var, *attack_options)
-
-    encrypt_button = Button(gui, text="Encrypt Text", fg="blue", command=encrypt_text)
-    encrypt_button.grid(row=4, column=3, padx=100)
-
-    generate_button = Button(gui, text="Generate Text", command=generate_text)
-    generate_button.grid(row=3, column=3, sticky=W, padx=100)
 
     # Test Vector Options 
     test_vector_options_label = Label(gui, text="Enter Test Vector Parameters:", fg="black")
@@ -107,9 +115,33 @@ if __name__ == "__main__":
     test_vector_number_entry.grid(row=9, column=0, sticky=W, padx=10, pady=2)
     test_vector_number_entry.insert(0, '5')  # Default value of 5
 
-    # Download Button
+
+    # Result Labels
+    result_label = Label(gui, text="Results: ", fg="black")
+    result_label.grid(row=0, column=4, sticky=E, padx=10, pady=10)
+
+    input_data_label = Label(gui, text="Input Data: ", fg="black")
+    input_data_label.grid(row=1, column=4, sticky=E, padx=10, pady=10)
+
+    encrypted_data_label = Label(gui, text="Encrypted Data: ", fg="black")
+    encrypted_data_label.grid(row=2, column=4, sticky=E, padx=10, pady=10)
+
+    decrypted_data_label = Label(gui, text="Decrypted Data: ", fg="black")
+    decrypted_data_label.grid(row=3, column=4, sticky=E, padx=10, pady=10)
+
+    accuracy_label = Label(gui, text="Accuracy: ", fg="black")
+    accuracy_label.grid(row=4, column=4, sticky=E, padx=10, pady=10)
+
+    time_taken_label = Label(gui, text="Time Taken: ", fg="black")
+    time_taken_label.grid(row=5, column=4, sticky=E, padx=10, pady=10)
+    # Buttons
+    encrypt_button = Button(gui, text="Encrypt Text", fg="blue", command=encrypt_text)
+    encrypt_button.grid(row=4, column=3, padx=100)
+
+    generate_button = Button(gui, text="Generate Text", command=generate_text)
+    generate_button.grid(row=3, column=3, sticky=W, padx=100)
+
     download_button = Button(gui, text="Download Results", command=lambda: download_report(test_vector_length_entry, test_vector_number_entry, test_vector))
-
     download_button.grid(row=10, column=0, sticky=W, padx=10)
+    
     gui.mainloop()
-
