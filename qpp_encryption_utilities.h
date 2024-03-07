@@ -1,7 +1,16 @@
 #include <iostream>
 #include <vector>
+#include <bitset>
+#include <stdlib.h>     /* srand, rand */
 using namespace std;
 
+/*
+gates_subset: a sequence of indices to swap the elements in the array [0, 1, 2, ... , M-1] to create the permutation matrix
+
+chosen_gates: Different implementations determine this sequence differently. This uses the method in the algorithm article.
+    - Another way is to use a seed that first determines gates_subset and also seeds a PRNG to produce a binary sequence (X) that will be
+    XORED with the input text and modded (%) with M to determine the sequece of chosen gates  
+*/
 struct qpp_key {
     vector<int> gates_subset; //AKA "G"
     vector<int> chosen_gates; //AKA "M"
@@ -14,17 +23,11 @@ permutation_mat_size: length of the square permutation matricies used for encryp
 
 total_gates: used to specify the number of gates from permutation_mat_size! chosen to be used for the encryption
     - should be >=2 so that a matrix with either index 0 or 1 can be chosen
-
-gates_subset: a sequence of indices to swap the elements in the array [0, 1, 2, ... , M-1] to create the permutation matrix
-
-chosen_gates: Different implementations determine this sequence differently. This uses the method in the algorithm article.
-    - Another way is to use a seed that first determines gates_subset and also seeds a PRNG to produce a binary sequence (X) that will be
-    XORED with the input text and modded (%) with M to determine the sequece of chosen gates  
 */
 void generate_key(qpp_key* encryption_key, int permutation_mat_size, int total_gates) {
     for (int i = 0; i < permutation_mat_size + total_gates - 1; i++) { // -1 because each time a new permutation matrix is created we shift 
-        encryption_key->gates_subset.push_back(rand() % permutation_mat_size); //Need to use seeding
-        encryption_key->chosen_gates.push_back(rand() % total_gates); 
+        encryption_key->gates_subset.push_back(rand() % permutation_mat_size);
+        encryption_key->chosen_gates.push_back(rand() % total_gates);
     }
     return;
 }
@@ -98,3 +101,55 @@ int*** generate_permutation_matrices(int permutation_mat_size, int total_gates, 
     }
     return matrices;
 }
+
+void delete_matricies(int*** matrices, int permutation_mat_size, int total_gates) {
+    for (int mat = 0; mat < total_gates; mat++) {
+            for (int row = 0; row < permutation_mat_size; row++) {
+                delete[] matrices[mat][row];
+            }
+            delete[] matrices[mat];
+        }
+        delete[] matrices;
+}
+
+/*
+plain_text_to_binary
+binaryVector stores the 8 bit ascii representation of each character
+*/
+vector<bitset<8>> plain_text_to_binary(string text) {
+    vector<bitset<8>> binaryVector;
+    // store each character in plain text input as 8 bit ascii representation
+    for (char c : text) {
+        binaryVector.push_back(int(c));
+    }
+    return binaryVector;
+}
+
+/*
+plain_text_to_2bit_decimal
+binaryVector stores the 8 bit ascii representation of each character
+decimalVector stores the decimal values of each two-bit segment of the binary representation
+*/
+vector<int> plain_text_to_2bit_decimal(string text) {
+    vector<bitset<8>> binaryVector;
+    // store each character in plain text input as 8 bit ascii representation
+    for (char c : text) {
+        binaryVector.push_back(bitset<8>(c));
+    }
+    vector<int> decimalVector;
+    // store each character in plain text input as 8 bit ascii representation
+    for (char c : text) {
+        binaryVector.push_back(bitset<8>(c));
+    }
+    
+    // Group each 8 bit ascii representation of a character to 2 bits, and convert the 2 bits to decimal
+    for (const auto& binary : binaryVector) {
+        for (int i = 7; i >= 0; i -= 2) { 
+            int decimal_value = binary[i] * 2 + binary[i - 1] * 1; 
+            decimalVector.push_back(decimal_value);
+        }
+    }
+    
+    return decimalVector;
+}
+
