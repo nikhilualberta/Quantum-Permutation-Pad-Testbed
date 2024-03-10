@@ -51,24 +51,24 @@ void populate_permutation_matrix(int permutation_mat_size, int** p_matrix, vecto
         }
     }
 
-    printf("k: ");
-    for (int num : k)
-        printf("%d", num);
-    printf("\n");
+    // printf("k: ");
+    // for (int num : k)
+    //     printf("%d", num);
+    // printf("\n");
 
-    printf("indexes: ");
-    for (int num : indexes)
-        printf("%d", num);
-    printf("\n");
+    // printf("indexes: ");
+    // for (int num : indexes)
+    //     printf("%d", num);
+    // printf("\n");
 
     for (int i = permutation_mat_size-1; i >= 0; i--) {
         index = k[i];
-        printf("swapping indices %d and %d\n", index, i);
+        // printf("swapping indices %d and %d\n", index, i);
         swap(indexes[index], indexes[i]);
-        printf("indexes: ");
-        for (int num : indexes)
-            printf("%d", num);
-        printf("\n");
+        // printf("indexes: ");
+        // for (int num : indexes)
+        //     printf("%d", num);
+        // printf("\n");
     }
     
     for (int i = 0; i < permutation_mat_size; i++) {
@@ -86,10 +86,10 @@ int*** generate_permutation_matrices(int permutation_mat_size, int total_gates, 
         auto end = start + permutation_mat_size;
         // To store the sliced vector
         vector<int> swapping_indices = vector<int>(start, end);
-        printf("swapping_indices: ");
-        for (int num : swapping_indices)
-            printf("%d", num);
-        printf("\n");
+        // printf("swapping_indices: ");
+        // for (int num : swapping_indices)
+        //     printf("%d", num);
+        // printf("\n");
 
         // Allocate memory for the matrix
         int** P = new int*[permutation_mat_size]; //FIXME: use a more efficient matrix class? https://stackoverflow.com/questions/936687/how-do-i-declare-a-2d-array-in-c-using-new/28841507#28841507
@@ -100,6 +100,24 @@ int*** generate_permutation_matrices(int permutation_mat_size, int total_gates, 
         matrices[i] = P;
     }
     return matrices;
+}
+
+int*** generate_transpose_matrices(int*** og_matrices, int total_gates, int permutation_mat_size) {
+    // Array of Transpose Matrices
+    int*** transpose_matrices = new int**[total_gates];
+
+    for (int i = 0; i < total_gates; i++) {
+        // Allocate memory for the matrix
+        int** transpose_mat = new int*[permutation_mat_size]; //FIXME: use a more efficient matrix class? https://stackoverflow.com/questions/936687/how-do-i-declare-a-2d-array-in-c-using-new/28841507#28841507
+        for (int row = 0; row < permutation_mat_size; ++row) {
+            transpose_mat[row] = new int[permutation_mat_size];
+            for (int col = 0; col < permutation_mat_size; col++) {
+                transpose_mat[row][col] = og_matrices[i][col][row];
+            }
+        }
+        transpose_matrices[i] = transpose_mat;
+    }
+    return transpose_matrices;
 }
 
 void delete_matricies(int*** matrices, int permutation_mat_size, int total_gates) {
@@ -126,16 +144,23 @@ vector<bitset<8>> plain_text_to_binary(string text) {
 }
 
 /*
+message_bits: ascii binary representation of plaintext
+*/
+string binary_to_plaintext(vector<bitset<8>> message_bits) {
+    string message = "";
+    for (bitset<8> character : message_bits) {
+        message += char(character.to_ulong());
+    }
+    return message;
+}
+
+/*
 plain_text_to_2bit_decimal
 binaryVector stores the 8 bit ascii representation of each character
 decimalVector stores the decimal values of each two-bit segment of the binary representation
 */
 vector<int> plain_text_to_2bit_decimal(string text) {
     vector<bitset<8>> binaryVector;
-    // store each character in plain text input as 8 bit ascii representation
-    for (char c : text) {
-        binaryVector.push_back(bitset<8>(c));
-    }
     vector<int> decimalVector;
     // store each character in plain text input as 8 bit ascii representation
     for (char c : text) {
