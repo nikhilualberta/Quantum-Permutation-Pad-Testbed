@@ -2,8 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "qpp_encryption_utilities.h"
-#include "qpp_encrypt_decrypt.h"
+#include "qpp_all_functions.h"
 using namespace std;
 
 int main() {
@@ -50,7 +49,7 @@ int main() {
     //     printf("\n");
     // }
 
-    string test_string = "Hello world my name is David! This is QPP - #$%6&";
+    string test_string = "Hello world my name is Nikhil";
     vector<bitset<8>> og_message_bits = plain_text_to_binary(test_string);
     vector<bitset<8>> cypher_bits(og_message_bits.size(), 00000000);
     vector<bitset<8>> decyphered_bits(og_message_bits.size(), 00000000);

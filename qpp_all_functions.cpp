@@ -1,29 +1,5 @@
-#include <iostream>
-#include <vector>
-#include <bitset>
-#include <stdlib.h>     /* srand, rand */
-using namespace std;
+#include "qpp_all_functions.h"
 
-/*
-gates_subset: a sequence of indices to swap the elements in the array [0, 1, 2, ... , M-1] to create the permutation matrix
-
-chosen_gates: Different implementations determine this sequence differently. This uses the method in the algorithm article.
-    - Another way is to use a seed that first determines gates_subset and also seeds a PRNG to produce a binary sequence (X) that will be
-    XORED with the input text and modded (%) with M to determine the sequece of chosen gates  
-*/
-struct qpp_key {
-    vector<int> gates_subset; //AKA "G"
-    vector<int> chosen_gates; //AKA "M"
-};
-
-/*
-permutation_mat_size: length of the square permutation matricies used for encryption
-    - This is also the length of each chunk in the encryption
-    - There are a total of permutation_mat_size! possible matricies
-
-total_gates: used to specify the number of gates from permutation_mat_size! chosen to be used for the encryption
-    - should be >=2 so that a matrix with either index 0 or 1 can be chosen
-*/
 void generate_key(qpp_key* encryption_key, int permutation_mat_size, int total_gates) {
     for (int i = 0; i < permutation_mat_size + total_gates - 1; i++) { // -1 because each time a new permutation matrix is created we shift 
         encryption_key->gates_subset.push_back(rand() % permutation_mat_size);
@@ -178,3 +154,43 @@ vector<int> plain_text_to_2bit_decimal(string text) {
     return decimalVector;
 }
 
+void encrypt_decrypt(vector<bitset<8>>* input_chunks, vector<bitset<8>>* output_bits, vector<int>* chosen_matrices, int chunk_size, int*** permutation_matrices) {
+    int** mat;
+    int chunk_num = 0;
+
+    for (const bitset<8>& chunk : *input_chunks) {
+        // Determine matrix
+        mat = permutation_matrices[(*chosen_matrices)[chunk_num % (chosen_matrices->size())]];
+
+        // Display current permutation matrix
+        // printf("current matrix:\n");
+        // for (int row = 0; row < chunk_size; row++) {
+        //     for (int col = 0; col < chunk_size; col++) {
+        //         printf("%d ", mat[row][col]);
+        //     }
+        //     printf("\n");
+        // }
+        // printf("\n");
+
+        // printf("Current Chunk: ");
+        // cout << chunk << endl;
+
+        // printf("Current Output: ");
+        // cout << (*output_bits)[chunk_num] << endl;
+
+        // Encryption
+        for (int row = 0; row < chunk_size; row++) {
+            // printf("Row: %d\n", row);
+            for (int col = 0; col < chunk_size; col++) {
+                // printf("\tCol: %d -- Matval: %d -- chunkBit: %d\n", col, mat[row][col], chunk.test(chunk_size - col - 1));
+                if ((mat[row][col] == 1) && chunk.test(chunk_size - col - 1)) { // i.e the bit at index col in the current chunk is 1
+                    // printf("\tInserting 1 to index %d of chunk %d\n", col, chunk_num);
+                    (*output_bits)[chunk_num].set(chunk_size - row - 1);
+                    // cout << "Current output for chunk #" << chunk_num << " " << (*output_bits)[chunk_num] << endl;
+                    break;
+                }
+            }
+        }
+        chunk_num++;
+    }
+}
