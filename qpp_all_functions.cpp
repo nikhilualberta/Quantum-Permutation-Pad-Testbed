@@ -2,8 +2,8 @@
 
 void generate_key(qpp_key* encryption_key, int permutation_mat_size, int total_gates) {
     for (int i = 0; i < permutation_mat_size + total_gates - 1; i++) { // -1 because each time a new permutation matrix is created we shift 
-        encryption_key->gates_subset.push_back(rand() % permutation_mat_size);
-        encryption_key->chosen_gates.push_back(rand() % total_gates);
+        encryption_key->gates_subset[i] = (rand() % permutation_mat_size);
+        encryption_key->chosen_gates[i] = (rand() % total_gates);
     }
     return;
 }
@@ -13,184 +13,83 @@ permutation_mat_size: side length of the square permutation matrix
 swapping_indices: the indexes to swap in the range [0, permutation_mat_size-1] to determine which columns in each row of the permutation matrix gets assigned 1
     - AKA (a splice of G)
 */
-void populate_permutation_matrix(int permutation_mat_size, int** p_matrix, vector<int> swapping_indices) {
+void populate_permutation_matricies(int (*matrices)[PERMUTATION_MAT_SIZE][PERMUTATION_MAT_SIZE], int permutation_mat_size, int total_gates, int* swapping_indices) {
     // Fixme: implement length checking of "swapping_indices"
-    int k[permutation_mat_size];
-    int indexes[permutation_mat_size]; // AKA "S[]"
-    int index;
+    for (int mat = 0; mat < total_gates; mat++)
+    {
+        int indexes[permutation_mat_size]; // AKA "S[]"
+        int current_swapping_indices[permutation_mat_size];
+        int index;
 
-    for (int i = 0; i < permutation_mat_size; i++) {
-        k[i] = swapping_indices[i];
-        indexes[i] = i;
-        for (int j = 0; j < permutation_mat_size; j++) {
-            p_matrix[i][j] = 0;
+        for (int i = mat; i < mat + PERMUTATION_MAT_SIZE; i++) {
+            printf("i: %d, start: %d, stop: %d\n", i, mat, mat + PERMUTATION_MAT_SIZE);
+            current_swapping_indices[i-mat] = swapping_indices[i];
         }
-    }
 
-    // printf("k: ");
-    // for (int num : k)
-    //     printf("%d", num);
-    // printf("\n");
+        for (int i = 0; i < permutation_mat_size; i++) {
+            indexes[i] = i;
+            for (int j = 0; j < permutation_mat_size; j++) {
+                matrices[mat][i][j] = 0;
+            }
+        }
 
-    // printf("indexes: ");
-    // for (int num : indexes)
-    //     printf("%d", num);
-    // printf("\n");
-
-    for (int i = permutation_mat_size-1; i >= 0; i--) {
-        index = k[i];
-        // printf("swapping indices %d and %d\n", index, i);
-        swap(indexes[index], indexes[i]);
-        // printf("indexes: ");
-        // for (int num : indexes)
-        //     printf("%d", num);
-        // printf("\n");
-    }
-    
-    for (int i = 0; i < permutation_mat_size; i++) {
-        p_matrix[i][indexes[i]] = 1;
+        for (int i = permutation_mat_size-1; i >= 0; i--) {
+            index = current_swapping_indices[i];
+            swap(indexes[index], indexes[i]);
+        }
+        
+        for (int i = 0; i < permutation_mat_size; i++) {
+            matrices[mat][i][indexes[i]] = 1;
+        }
     }
 }
 
-int*** generate_permutation_matrices(int permutation_mat_size, int total_gates, vector<int> key_first_part) {
-    // Array of Permutation Matrices
-    int*** matrices = new int**[total_gates];
-    
-    for (int i = 0; i < total_gates; i++) {
-        // Find the indices to swap for this particular matrix
-        auto start = key_first_part.begin() + i;
-        auto end = start + permutation_mat_size;
-        // To store the sliced vector
-        vector<int> swapping_indices = vector<int>(start, end);
-        // printf("swapping_indices: ");
-        // for (int num : swapping_indices)
-        //     printf("%d", num);
-        // printf("\n");
-
-        // Allocate memory for the matrix
-        int** P = new int*[permutation_mat_size]; //FIXME: use a more efficient matrix class? https://stackoverflow.com/questions/936687/how-do-i-declare-a-2d-array-in-c-using-new/28841507#28841507
-        for (int j = 0; j < permutation_mat_size; ++j) {
-            P[j] = new int[permutation_mat_size];
-        }
-        populate_permutation_matrix(permutation_mat_size, P, swapping_indices);
-        matrices[i] = P;
-    }
-    return matrices;
-}
-
-int*** generate_transpose_matrices(int*** og_matrices, int total_gates, int permutation_mat_size) {
+void populate_transpose_matrices(int (*og_matrices)[PERMUTATION_MAT_SIZE][PERMUTATION_MAT_SIZE], int (*transpose_matrices)[PERMUTATION_MAT_SIZE][PERMUTATION_MAT_SIZE], int permutation_mat_size, int total_gates) {
     // Array of Transpose Matrices
-    int*** transpose_matrices = new int**[total_gates];
 
-    for (int i = 0; i < total_gates; i++) {
-        // Allocate memory for the matrix
-        int** transpose_mat = new int*[permutation_mat_size]; //FIXME: use a more efficient matrix class? https://stackoverflow.com/questions/936687/how-do-i-declare-a-2d-array-in-c-using-new/28841507#28841507
-        for (int row = 0; row < permutation_mat_size; ++row) {
-            transpose_mat[row] = new int[permutation_mat_size];
-            for (int col = 0; col < permutation_mat_size; col++) {
-                transpose_mat[row][col] = og_matrices[i][col][row];
-            }
-        }
-        transpose_matrices[i] = transpose_mat;
-    }
-    return transpose_matrices;
-}
-
-void delete_matricies(int*** matrices, int permutation_mat_size, int total_gates) {
     for (int mat = 0; mat < total_gates; mat++) {
-            for (int row = 0; row < permutation_mat_size; row++) {
-                delete[] matrices[mat][row];
+        for (int row = 0; row < permutation_mat_size; ++row) {
+            for (int col = 0; col < permutation_mat_size; col++) {
+                transpose_matrices[mat][row][col] = og_matrices[mat][col][row];
             }
-            delete[] matrices[mat];
         }
-        delete[] matrices;
+    }
 }
 
 /*
 plain_text_to_binary
 binaryVector stores the 8 bit ascii representation of each character
 */
-vector<bitset<8>> plain_text_to_binary(string text) {
-    vector<bitset<8>> binaryVector;
+void plain_text_to_binary(char* text, int input_length, bitset<8>* binary) {
     // store each character in plain text input as 8 bit ascii representation
-    for (char c : text) {
-        binaryVector.push_back(int(c));
+    for (int i = 0; i < input_length; i++) {
+        binary[i] = (int(text[i]));
     }
-    return binaryVector;
 }
 
-/*
-message_bits: ascii binary representation of plaintext
-*/
-string binary_to_plaintext(vector<bitset<8>> message_bits) {
-    string message = "";
-    for (bitset<8> character : message_bits) {
-        message += char(character.to_ulong());
+// /*
+// message_bits: ascii binary representation of plaintext
+// */
+void binary_to_plaintext(bitset<8>* message_bits, char* message_string, int length) {
+    for (int i = 0; i < length; i++) {
+        message_string[i] = char(message_bits[i].to_ulong());
     }
-    return message;
 }
 
-/*
-plain_text_to_2bit_decimal
-binaryVector stores the 8 bit ascii representation of each character
-decimalVector stores the decimal values of each two-bit segment of the binary representation
-*/
-vector<int> plain_text_to_2bit_decimal(string text) {
-    vector<bitset<8>> binaryVector;
-    vector<int> decimalVector;
-    // store each character in plain text input as 8 bit ascii representation
-    for (char c : text) {
-        binaryVector.push_back(bitset<8>(c));
-    }
-    
-    // Group each 8 bit ascii representation of a character to 2 bits, and convert the 2 bits to decimal
-    for (const auto& binary : binaryVector) {
-        for (int i = 7; i >= 0; i -= 2) { 
-            int decimal_value = binary[i] * 2 + binary[i - 1] * 1; 
-            decimalVector.push_back(decimal_value);
-        }
-    }
-    
-    return decimalVector;
-}
-
-void encrypt_decrypt(vector<bitset<8>>* input_chunks, vector<bitset<8>>* output_bits, vector<int>* chosen_matrices, int chunk_size, int*** permutation_matrices) {
-    int** mat;
-    int chunk_num = 0;
-
-    for (const bitset<8>& chunk : *input_chunks) {
-        // Determine matrix
-        mat = permutation_matrices[(*chosen_matrices)[chunk_num % (chosen_matrices->size())]];
-
-        // Display current permutation matrix
-        // printf("current matrix:\n");
-        // for (int row = 0; row < chunk_size; row++) {
-        //     for (int col = 0; col < chunk_size; col++) {
-        //         printf("%d ", mat[row][col]);
-        //     }
-        //     printf("\n");
-        // }
-        // printf("\n");
-
-        // printf("Current Chunk: ");
-        // cout << chunk << endl;
-
-        // printf("Current Output: ");
-        // cout << (*output_bits)[chunk_num] << endl;
+void encrypt_decrypt(bitset<8>* input_chunks, bitset<8>* output_bits, int input_length, int* chosen_matrices, int (*permutation_matrices)[PERMUTATION_MAT_SIZE][PERMUTATION_MAT_SIZE]) {
+    int (*mat)[PERMUTATION_MAT_SIZE];
+    for (int chunk = 0; chunk < input_length; chunk++)
+    {
+        mat = permutation_matrices[chosen_matrices[chunk % TOTAL_GATES]];
 
         // Encryption
-        for (int row = 0; row < chunk_size; row++) {
-            // printf("Row: %d\n", row);
-            for (int col = 0; col < chunk_size; col++) {
-                // printf("\tCol: %d -- Matval: %d -- chunkBit: %d\n", col, mat[row][col], chunk.test(chunk_size - col - 1));
-                if ((mat[row][col] == 1) && chunk.test(chunk_size - col - 1)) { // i.e the bit at index col in the current chunk is 1
-                    // printf("\tInserting 1 to index %d of chunk %d\n", col, chunk_num);
-                    (*output_bits)[chunk_num].set(chunk_size - row - 1);
-                    // cout << "Current output for chunk #" << chunk_num << " " << (*output_bits)[chunk_num] << endl;
+        for (int row = 0; row < PERMUTATION_MAT_SIZE; row++) {
+            for (int col = 0; col < PERMUTATION_MAT_SIZE; col++) {
+                if ((mat[row][col] == 1) && input_chunks[chunk].test(PERMUTATION_MAT_SIZE - col - 1)) { // i.e the bit at index col in the current chunk is 1
+                    output_bits[chunk].set(PERMUTATION_MAT_SIZE - row - 1);
                     break;
                 }
             }
         }
-        chunk_num++;
     }
 }
